@@ -1,0 +1,5 @@
+auth.txt
+venv/
+env/
+.ipynb_checkpoints/
+.idea/
