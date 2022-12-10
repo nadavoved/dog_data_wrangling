@@ -60,7 +60,7 @@ def dump_tweets_data(id_lst, auth):
                 'retweet_count': retweet_count}
 
     data = [get_tweet_counts(item) for item in id_lst]
-    with open('tweets_data.json', mode='w') as file:
+    with open('data/tweets_data.json', mode='w') as file:
         json.dump(data, fp=file)
 
 

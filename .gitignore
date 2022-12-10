@@ -1,4 +1,4 @@
-auth.txt
+data/auth.txt
 venv/
 env/
 .ipynb_checkpoints/
