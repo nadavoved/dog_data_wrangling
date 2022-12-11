@@ -1,0 +1,138 @@
+<html><head><style>body {
+   color: black;
+}
+</style></head><body><h1 id="wrangling-report">Wrangling Report</h1>
+<hr>
+<h2 id="-section-1-gathering-data-"><em>Section #1 - Gathering Data</em></h2>
+<p>I began by manually downloading <code>&#39;twitter-archive-enhanced.csv&#39;</code> from Udacity&#39;s given URL.
+Then, I created the module <code>gather.py</code> <strong><em>(detailed docstrings within the module)</em></strong>, 
+which consists of the functions I needed in order to gather the required data. 
+The first method - <code>gather.download_file_from_url</code> was used to download and save
+the <code>image_predictions.tsv</code> file programmatically. Then, I went on to create the functions necessary for
+getting WeRateDogs&#39; retweet and favorites counts:</p>
+<ol>
+<li><code>gather.get_auth</code>, which returns an auth object required for getting tweet&#39;s data from the tweeter API.</li>
+<li><code>gather.dump_tweets_data</code>, which dumps json-formatted counts data into <code>tweets_data.json</code>.</li>
+</ol>
+<p><em>SIDE-NOTE: It was crucial to take account of the APIs rate limit, 
+otherwise a lot of valid data would be ignored by the function.</em></p>
+<p>Finally, I loaded the collected data into three DataFrames:</p>
+<ol>
+<li><code>archive_original</code> for <code>&#39;twitter-archive-enhanced.csv&#39;</code>.</li>
+<li><code>tweet_cnts</code> for <code>tweets_data.json</code>.</li>
+<li><code>img_preds</code> for <code>image_predictions.tsv</code>.</li>
+</ol>
+<p>At a quick glance, I noticed that in all of the above frames the id column is cast by default as int, So as a quick quality fix
+I&#39;ve cast them to <code>str</code>, as the latter would be the appropriate data type for id.</p>
+<hr>
+<h2 id="section-2-assessing-data">Section #2 - Assessing Data</h2>
+<h3 id="total-quality-issues-mark-8-mark-">Total quality issues - <mark> 8 </mark></h3>
+<h3 id="total-tidiness-issues-mark-4-mark-">Total tidiness issues - <mark> 4 </mark></h3>
+<h3 id="total-issues-mark-12-mark-">Total issues - <mark> 12 </mark></h3>
+<h2 id="-archive_original-issues-"><strong><code>archive_original</code> issues:</strong></h2>
+<h3 id="quality-issues-mark-7-mark-">Quality issues - <mark> 7 </mark></h3>
+<ul>
+<li><em>completeness</em><ul>
+<li>missing tweet links urls in <code>expanded_urls</code> data, even in non empty cells. Detected visually - <code>archive_original.iloc[313]</code>, <code>archive_original.iloc[35]</code></li>
+<li>because we would like to clearly see if the relevant id is an original tweet, a boolean column
+<code>is_original</code> should be included.</li>
+<li>because we would like to clearly see if the relevant id is a reply, a boolean column <code>is_reply</code> should be included.</li>
+</ul>
+</li>
+<li><em>validity</em> - <ul>
+<li>inappropriate data type for columns <code>in_reply_to_status_id</code>,<br><code>in_reply_to_user_id</code>, <code>retweeted_status_id</code>, <code>retweeted_status_user_id</code>: float -&gt; string</li>
+<li>inappropriate data type for columns <code>timestamp</code>, <code>retweeted_status_timestamp</code>: object -&gt; datetime. both issues detected by using programmatic detection- <code>archive_original.info()</code></li>
+<li>duplicated links within the same cell in <code>expanded_urls</code>. Detected visually - <code>archive_original[&#39;expanded_urls&#39;].iloc[98]</code></li>
+</ul>
+</li>
+<li><em>consistency</em> - <ul>
+<li>name &#39;a&#39; appears 55 times in the <code>name</code> column, probably representing unknown names, while there are defined None&#39;s in the column. Used visual, then programmatic detection-<code>archive_original[&#39;name&#39;].value_counts()</code></li>
+</ul>
+</li>
+</ul>
+<h3 id="tidiness-issues-mark-3-mark-">Tidiness issues - <mark> 3 </mark></h3>
+<ul>
+<li>the 4 leftmost columns describe the same data, should be melted into one categorical column.</li>
+<li>retweeted data columns would be better separated as a standalone dataframe.</li>
+<li>replies data would be better separated as a standalone dataframe.<h2 id="-tweet_cnts-issues-"><strong><code>tweet_cnts</code> issues:</strong></h2>
+<h3 id="quality-issues-mark-1-mark-">Quality issues - <mark> 1 </mark></h3>
+</li>
+<li><em>validity</em><ul>
+<li>count columns should be converted to int to avoid confusion.<h3 id="tidiness-issues-mark-1-mark-">Tidiness issues - <mark> 1 </mark></h3>
+</li>
+</ul>
+</li>
+<li>dataframe would be better joined to archive_original, as it consists of general tweets data.<h2 id="-img_preds-issues-"><strong><code>img_preds</code> issues:</strong></h2>
+Used both programmatical and visual assessments, did not observe any issues.
+Also, no multiple records of same id&#39;s. One picture for each id.
+Used programmatic detection: <code>len(img_copy[img_copy[&#39;tweet_id&#39;].duplicated()])</code></li>
+</ul>
+<hr>
+<h2 id="section-3-cleaning-data">Section #3 - Cleaning Data</h2>
+<h2 id="-archive_original-cleaning-"><code>archive_original</code> cleaning:</h2>
+<h3 id="issue-1-missing-expanded_urls-data-">Issue #1: missing <code>expanded_urls</code> data.</h3>
+<ul>
+<li>concat <code>tweet_id</code> to WeRateDogs url prefix where <code>expanded_urls</code> is null or tweet url is missing:<ul>
+<li>first fill nan</li>
+<li>then check entire column for missing pattern</li>
+<li>finally, append a comma then the pattern to all missing it.<h3 id="issue-2-because-we-would-like-to-clearly-see-if-the-relevant-id-is-an-original-tweet-a-boolean-column-is_original-should-be-included-">Issue #2: because we would like to clearly see if the relevant id is an original tweet, a boolean column is_original should be included.</h3>
+</li>
+</ul>
+</li>
+<li>if <code>retweeted_status_id</code> is null, then <code>is_original</code> is True, else False.<h3 id="issue-3-inappropriate-data-type-for-columns-in_reply_to_status_id-in_reply_to_user_id-retweeted_status_id-retweeted_status_user_id-float-string">Issue #3: inappropriate data type for columns in_reply_to_status_id, in_reply_to_user_id, retweeted_status_id, retweeted_status_user_id: float -&gt; string</h3>
+</li>
+<li>iterate over the columns</li>
+<li>then, convert the dtype of each one to int in order to disable the scientific notation.</li>
+<li>finally, convert the dtype of each one to string.<h3 id="issue-4-inappropriate-data-type-for-columns-timestamp-retweeted_status_timestamp-object-datetime-">Issue #4: inappropriate data type for columns <code>timestamp</code>, <code>retweeted_status_timestamp</code>: object -&gt; datetime.</h3>
+</li>
+<li>convert given columns to datetime using Pandas&#39; <code>to_datetime</code> method.<h3 id="issue-5-because-we-would-like-to-clearly-see-if-the-relevant-id-is-a-reply-a-boolean-column-is_reply-should-be-included-">Issue #5: because we would like to clearly see if the relevant id is a reply, a boolean column <code>is_reply</code> should be included.</h3>
+</li>
+<li>add a boolean column, <code>is_reply</code>: <code>True</code> if id has reply data, else <code>False</code>.<h3 id="issue-6-duplicated-links-within-the-same-cell-in-expanded_url-">Issue #6: duplicated links within the same cell in <code>expanded_url</code>.</h3>
+</li>
+<li>split strings at <code>,</code> to list.</li>
+<li>set() on the output.</li>
+<li>join the set using <code>,</code></li>
+<li>apply to column using Pandas&#39; <code>map</code> function.<h3 id="issue-7-name-a-appears-55-times-in-the-name-column-probably-representing-unknown-names-while-there-are-defined-none-s-in-the-column-">Issue #7: name &#39;a&#39; appears 55 times in the <code>name</code> column, probably representing unknown names, while there are defined None&#39;s in the column.</h3>
+</li>
+<li>check if cell value is &#39;a&#39; or &#39;None&#39;</li>
+<li>if true, convert to Pandas&#39; <code>NA</code></li>
+<li>else, do nothing.</li>
+<li>apply to column using Pandas&#39; <code>map</code>.<h3 id="issue-8-the-4-leftmost-columns-describe-the-same-data-should-be-melted-into-one-categorical-column-">Issue #8: the 4 leftmost columns describe the same data, should be melted into one categorical column.</h3>
+</li>
+<li>Use Pandas&#39; <code>melt</code> function to melt the columns into a category and value column.</li>
+<li>create in a temporary dataframe that consists of only the records which do have a category(not &#39;None&#39;).</li>
+<li>drop its excess <code>value</code> column</li>
+<li>instead of simply removing duplicated id&#39;s, format the categories&#39; column in the temporary dataframe to include multiple categories for each id, as each tweet can validly contain multiple categories.</li>
+<li>convert temp to dtype string for proper nullable data type on left join.</li>
+<li><strong><em>NOTE - AS records may have some combination of categories, a string dtype instead would be more appropriate.</em></strong></li>
+<li>left join <code>archive_copy</code> with temp on <code>tweet_id</code></li>
+<li>drop the old category columns from <code>archive_copy</code><h3 id="issue-9-retweeted-data-columns-would-be-better-separated-as-a-standalone-dataframe-">Issue #9: retweeted data columns would be better separated as a standalone dataframe.</h3>
+</li>
+<li>create a DataFrame from these columns <code>retweet_data</code>.</li>
+<li>include only retweets(<code>is_original</code> False)</li>
+<li>drop columns from <code>archive_copy</code>.<h3 id="issue-10-replies-data-would-be-better-separated-as-a-standalone-dataframe-">Issue #10: replies data would be better separated as a standalone dataframe.</h3>
+</li>
+<li>create a DataFrame from these columns</li>
+<li>include only replies(<code>is_reply</code> true)</li>
+<li>drop columns from <code>archive_copy</code>.<h2 id="-tweet_cnts-cleaning-"><code>tweet_cnts</code> cleaning:</h2>
+<h3 id="issue-11-tweet_cnts-would-be-better-joined-to-archive_original-as-it-consists-of-general-tweets-data-">Issue #11: <code>tweet_cnts</code> would be better joined to archive_original, as it consists of general tweets data.</h3>
+</li>
+<li>left join <code>archive_copy</code> and <code>tweet_copy</code> on id.</li>
+<li>drop excess id column.<h3 id="issue-12-count-columns-should-be-converted-to-int-to-avoid-confusion-">Issue #12: count columns should be converted to int to avoid confusion.</h3>
+</li>
+<li>Address the issue in `archive_copy&#39;, as it includes the tweet counts dataframe.</li>
+<li>convert columns to Pandas&#39; <code>Int64Dtype</code><h2 id="bonus">Bonus</h2>
+<h3 id="issue-13-reindex-all-columns-by-priority-left-to-right-in-archive_copy-">Issue #13 - reindex all columns by priority left to right in<code>archive_copy</code></h3>
+</li>
+<li>reorder columns using reindex method.<h3 id="issue-14-use-accurate-dtype-for-each-column-in-master_df-">Issue #14 - use accurate dtype for each column in <code>master_df</code></h3>
+</li>
+<li>Although most column dtypes are accurate, should convert <code>object</code> -&gt; <code>pd.StringDtype</code>, as well as all p_dog columns to <code>boolean</code>.</li>
+</ul>
+<hr>
+<p><strong><em>Finally, After clearing all the issues above, I&#39;ve stored the clean data in three csv files:</em></strong></p>
+<ul>
+<li><code>twitter_archive_master.csv</code> - containing merged tweet archive, images datasets, and tweet counts. Containing all records from the original archive.</li>
+<li><code>retweet_data.csv</code> - containing retweet data for the retweets in tweet archive.</li>
+<li><code>reply_data.csv</code> - consists of reply data for the replies in tweet archive.</li>
+</ul>
+</body></html>

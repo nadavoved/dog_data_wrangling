@@ -1,0 +1,48 @@
+<html><head><style>body {
+   color: black;
+}
+</style></head><body><h1 id="analysis-report">Analysis Report</h1>
+<hr>
+<h2 id="question-insights-">Question &amp; Insights:</h2>
+<h3 id="question-1-what-is-the-most-common-dog-breed-prediction-">Question #1 - What is the most common dog breed prediction ?</h3>
+<ul>
+<li>concatenate all prediction columns. This would allow to later count all breed appearances combined. </li>
+<li>get the top from <code>.describe()</code>. &#39;top&#39; is essentially the combined breed series&#39; mode.<h3 id="question-2-what-is-the-mean-rating-numerator-">Question #2 - What is the mean rating numerator ?</h3>
+</li>
+<li>calculate <code>master_df[&#39;rating_numerator&#39;].mean()</code><h3 id="question-3-what-is-the-mean-text-length-for-original-weratedogs-tweets-">Question #3 - What is the mean text length for original WeRateDogs tweets?</h3>
+</li>
+<li>Include only original tweets: <code>master_df[&#39;text&#39;][master_df[&#39;is_original&#39;]]</code>. Masking the DataFrame for including only 
+original tweets would allow us to better focus our analysis on one area, thus yielding more meaningful insights.</li>
+<li>apply <code>len</code> for a new series using <code>.map()</code></li>
+<li>get <code>.mean()</code></li>
+</ul>
+<h3 id="insights-">Insights:</h3>
+<ol>
+<li>the most common dog breed prediction is <mark>Golden Retriever</mark>.</li>
+<li>the mean rating numerator is <mark>13.13</mark>.</li>
+<li>the mean text length (character count) for original WeRateDogs tweets is <mark>120.1</mark>.</li>
+</ol>
+<hr>
+<h2 id="visualization">Visualization</h2>
+<h3 id="visualization-1-original-tweet-count-per-month-line-chart-">Visualization #1: Original tweet count per month (line chart)</h3>
+<ul>
+<li>Include only original tweets: <code>master_df[&#39;timestamp&#39;][master_df[&#39;is_original&#39;]]</code></li>
+<li>create a series of only [month name] [year] in string format</li>
+<li>use <code>.value_counts()</code>. It extracts counts of appearances of each month - year pair within the masked data.</li>
+<li>sort the values according to index in datetime format. This is crucial for the correctness of the 
+wanted line chart, as otherwise months would not appear as chronologically ordered.</li>
+<li>plot a line chart: A line chart is best suited for the task, as the plot is quantity (count) over time (month - year).</li>
+</ul>
+<p>From the output bellow, We can observe that December 2015 was the most active month for 
+WeRateDogs in terms of original tweets count.
+<img src="vis1.png" alt="image info"></p>
+<h3 id="visualization-2-distribution-of-original-tweets-favorite-count-histogram-">Visualization #2: Distribution of original tweets&#39; favorite count (histogram)</h3>
+<ul>
+<li>Include only original tweets: <code>master_df[&#39;favorite_count&#39;][(master_df[&#39;is_original&#39;]) &amp; (master_df[&#39;favorite_count&#39;].notna())]</code></li>
+<li>plot a histogram for the given series</li>
+<li>limit by a certain percentile. This should be done in order to neglect extreme values with very small frequencies that cause the chart to look scattered and hard to interpret. </li>
+</ul>
+<p>While looking at the outputted histogram bellow, 
+we can see that it is right-skewed.</p>
+<img src="vis2.png" alt="image info">
+</body></html>
