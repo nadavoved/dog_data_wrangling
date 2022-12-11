@@ -19,5 +19,5 @@ ___
    - Open `gather.py` for detailed code and docstring of gathering functions.
 4. *Reports*
 - Open `reports` directory.
-     - For wrangling report, view `wrangle_report.html`.
-     - For analysis report, view `act_report.html`.
+     - For wrangling report, view `wrangle_report.pdf`.
+     - For analysis report, view `act_report.pdf`.
